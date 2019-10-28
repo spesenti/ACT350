@@ -1,0 +1,128 @@
+---
+title: "Simulating Poisson processes"
+subtitle: "University of Toronto, ACT 350"
+author: "Prof. S. Pesenti"
+date: "19/10/2019"
+
+header-includes:
+- \usepackage{lastpage}
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \setlength{\headheight}{23pt}
+- \fancyhead[L]{ACT 350}
+- \fancyhead[R]{University of Toronto\\ Prof. S. Pesenti}
+- \fancyfoot[C]{}
+- \fancyfoot[R]{\thepage \, of \pageref{LastPage}}
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r packages, include=FALSE}
+# package for calculating matrix exponentials
+```
+
+
+# How to simulate a Poisson process
+
+
+Recall that a Poisson process with rate $\lambda >0$ is a counting process $\{ N(t), ~t \geq 0\}$ that has the following properties
+
+
+1. *starts at 0*: $N(0) = 0$ with probability 1    
+2. *is increasing*: $N(s)  \leq N(t)$ for all $s \leq t$    
+3. *has Poisson distributed increments*: $P(N(s + t) - N(s) = n) \sim$ Pois($\lambda t$) for all $s,t \geq 0$.     
+
+
+However, this definition does not help if we want to simulate a Poisson process. Thus, to simulate a Poisson process we use its alternative definition. That is, for independent random variables $X_1, X_2, \ldots$ that are Exponentially distributed with rate $\lambda>0$, a Poisson process with rate $\lambda>0$ can be written as
+\begin{equation*}
+N(t) = \max\Big\{ n \in \mathbb{N} ~\Big|~ \sum_{i = 1}^n X_i \leq t \Big\}, \quad \text{for all } t \geq 0.
+\end{equation*}
+
+
+Thus, for simulating a Poisson process we first need to simulate exponential random variables, add them up and check whether they are smaller or equal to $t$. However, we will run into problems when we want to store the value of $N(t)$ for every $0 \leq t < \infty$. The way out is to implement $N(t)$ as a function of $t$ in the following way. First generate the jump points of the Poisson process. Second, we know that a Poisson process can only jump one unit at a time. Thus, we can define the Poisson process as a step function that jumps exactly one unit at every jump point. 
+
+
+## 1. Generating jump times
+This is an algorithm for generating the jump times of a Poisson process    
+
+
+1. Set $\tau_0 = 0$.     
+2. For $k \geq 1$ do     
+    a) generate $X \sim$Exp($\lambda$)      
+    b) set $\tau_k = \tau_{k - 1} + X$    
+
+The $\tau_k, ~ k = 0, 1, \ldots$ are the time points, where the Poisson process jumps. 
+
+
+**Numerical implementation: R code**
+```{r}
+# set the seed for generating random variables (for reproducability) 
+# set.seed(2019)
+
+# set the rate of the Poisson process/Exponential distribution
+lambda <- 2
+# number of jumps 
+n <- 50
+# initialise the jump times
+jump_times <- rep(0, lenthought = n)
+
+# note that the first value of the jump_times is aleady 0
+for(i in 2:n){
+  jump_times[i] <- jump_times[i - 1] + rexp(1, lambda)
+}
+jump_times
+```
+
+
+A more efficient implementation, avoiding the for loop, is 
+```{r}
+jump_times_2 = c(0, cumsum(rexp(n-1, lambda)))
+# note that the two generated sample_paths are different, 
+# since the Exponential random variables are different.
+jump_times_2
+```
+
+## 2. Defining the Poisson process as a function
+
+Next, we can define the Poisson process as a step function that jumps exactly one unit at every value in `jump_times`. Note that the implemented Poisson process is now a *function* of the time $t$.   
+```{r}
+# define the Poisson process as a function
+poisson_process <- stepfun(jump_times, seq(0, n, by = 1))
+# the first argument of `stepfun` is where the step function jumps
+# the second argument is the hight of the step function
+
+# Let us check some values.
+# What is the value of N(3)? (Note that we use jump_times)
+poisson_process(3)
+poisson_process(10)
+poisson_process(15)
+
+```
+
+
+Note you can evaluate the Poisson process for any time point $t$, however, keep in mind that we only simulated 50 jumps of the Poisson process. Thus, evaluating `N(t)` for $t$ large does not make sense. 
+
+## 3. Plotting a sample path
+
+To plot a sample path we have to plot the implemented step function `poisson_process`. 
+```{r, simulated sample path}
+plot(poisson_process, xlab = "time", ylab = "Value of Poisson process", main = NULL,
+     verticals = FALSE, do.points = FALSE, xlim = c(0,jump_times[n]))
+
+```
+
+**Question:** Rerun the code, what do you observe?     
+**Question:** Rerun the code with a different $\lambda$ or change the number of jumps. How does the sample path change?      
+**Question:** What happens if you replace the Exponential random variables in the definition of the Poisson process with other i.i.d. random variables? For example, Gamma, Normal or LogNormal?    
+Rerun the code snippets changing `rexp` to `rgamma`, `rnorm` or `rlnorm`.    
+
+*Note* that for random variables that are not Exponentially distributed you still get a counting process. These processes are called *Renewal processes*. 
+
+
+
+
+
+
+
+
+

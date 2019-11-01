@@ -76,7 +76,7 @@ jump_times
 
 A more efficient implementation, avoiding the for loop, is 
 ```{r}
-jump_times_2 = c(0, cumsum(rexp(n-1, lambda)))
+jump_times_2 = cumsum(rexp(n-1, lambda))
 # note that the two generated sample_paths are different, 
 # since the Exponential random variables are different.
 jump_times_2
@@ -87,7 +87,7 @@ jump_times_2
 Next, we can define the Poisson process as a step function that jumps exactly one unit at every value in `jump_times`. Note that the implemented Poisson process is now a *function* of the time $t$.   
 ```{r}
 # define the Poisson process as a function
-poisson_process <- stepfun(jump_times, seq(0, n, by = 1))
+poisson_process <- stepfun(jump_times[2 : 50], seq(0, n - 1, by = 1))
 # the first argument of `stepfun` is where the step function jumps
 # the second argument is the hight of the step function
 

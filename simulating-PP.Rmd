@@ -15,6 +15,7 @@ header-includes:
 output:
   html_document: default
   pdf_document: default
+  md_document: default
 ---
 ```{r packages, include=FALSE}
 # package for calculating matrix exponentials

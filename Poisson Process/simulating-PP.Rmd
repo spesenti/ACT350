@@ -13,8 +13,8 @@ header-includes:
 - \fancyfoot[C]{}
 - \fancyfoot[R]{\thepage \, of \pageref{LastPage}}
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
   md_document: default
 ---
 ```{r packages, include=FALSE}
@@ -76,7 +76,7 @@ jump_times
 
 A more efficient implementation, avoiding the for loop, is 
 ```{r}
-jump_times_2 = cumsum(rexp(n-1, lambda))
+jump_times_2 = c(0, cumsum(rexp(n-1, lambda)))
 # note that the two generated sample_paths are different, 
 # since the Exponential random variables are different.
 jump_times_2

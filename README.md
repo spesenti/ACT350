@@ -1,4 +1,4 @@
-# stochastic-processes
+# R code for the lecture ACT350 at the University of Toronto
 
 This repositories contain documents for simulating stochastic processes used in my lecture ACT350 at the University of Toronto.    
 
@@ -6,3 +6,5 @@ This repositories contain documents for simulating stochastic processes used in 
 * simulating-MC.md contains is a Markdown file for simulating Markov chains    
 
 This repository is licensed under the terms of GPL-3.
+
+

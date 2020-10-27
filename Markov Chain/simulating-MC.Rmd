@@ -3,7 +3,6 @@ title: "Simulating Discrete Markov Chains"
 subtitle: "University of Toronto, ACT 350"
 author: "Prof. S. Pesenti"
 date: "19/10/2019"
-
 header-includes:
 - \usepackage{lastpage}
 - \usepackage{fancyhdr}
@@ -14,8 +13,8 @@ header-includes:
 - \fancyfoot[C]{}
 - \fancyfoot[R]{\thepage \, of \pageref{LastPage}}
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 ```{r packages, include=FALSE}
 # package for calculating matrix exponentials
@@ -92,7 +91,7 @@ P %^% 50
 **Question:** What do you observe? 
 
 
-We see numerically that the rows of the transition matrices always add up to 1. Further, we observe that the transition matrix after $10$ days and after $50$ days are numerically equal. Let $t= 0$ correspond to the induction day and $t = 1$ to the first day of lectures. Then we have that, if the student was late at the induction day, he will be late at the end of the semester with probability `r (P %^% 50)[1,1]`, independent of whether he was late or not during the term. Recall that $p_{ll}^{50} = P(X_{50} = l | X_0 = l)$ is the probability that the student is late on the 50th day, given he was late at the induction day. Numerically, we observe that $p_{ll}^{10} = p_{ll}^{11} = \cdots = p_{ll}^{50} = \cdots p_{ll}^{n} = \cdots$ for all $n$ large. Thus, the the probability of being late on a day later in the semester, if the student was late at induction day, does not change. 
+We see numerically that the rows of the transition matrices always add up to 1. Further, we observe that the transition matrix after $10$ days and after $50$ days are numerically equal. Let $t= 0$ correspond to the induction day and $t = 1$ to the first day of lectures. Then we have that, if the student was late at the induction day, he will be late at the end of the semester with probability `r (P %^% 50)[1,1]`, independent of whether he was late or not during the term. Recall that $p_{ll}^{50} = P(X_{50} = l | X_0 = l)$ is the probability that the student is late on the 50th day, given he was late at the induction day. Numerically, we observe that $p_{ll}^{10} = p_{ll}^{11} = \cdots = p_{ll}^{50} = \cdots p_{ll}^{n} = \cdots$ for all $n$ large. Thus, the probability of being late on a day later in the semester, is independent whether the student was late at induction day or not. 
 
 **Question:** Does this mean that (`r (P %^% 50)[1,1]`, `r (P %^% 50)[1,2]`) is a stationary distribution for the Markov Chain? 
 
@@ -201,7 +200,7 @@ So far we only looked how the probabilities of being punctual or late changes fr
 1. Set an initial value for $x_0$. (Is the student punctual or late at induction day?) To be able to use the matrix notation, the initial value needs to be a vector. For example $x_0 = (1,0)$ means the student is late at induction day.        
 2. for $n \geq 1$ do:   
       a) calculate $x_{0} * P^n$ (the distribution of the student to be late/punctual on the $n^{th}$ day)  
-      c) generate a realisation from a random variable with distribution $X_{0} * P^n$     
+      c) generate a realisation from a random variable with distribution $x_{0} * P^n$     
       d) set the outcome of the random variable equal to $x_n$
 
 The collection $x_0, x_1, \ldots$ is the sample path of the student.      

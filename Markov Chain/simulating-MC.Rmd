@@ -13,8 +13,8 @@ header-includes:
 - \fancyfoot[C]{}
 - \fancyfoot[R]{\thepage \, of \pageref{LastPage}}
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 ```{r packages, include=FALSE}
 # package for calculating matrix exponentials

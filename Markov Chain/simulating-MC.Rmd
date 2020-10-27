@@ -2,7 +2,7 @@
 title: "Simulating Discrete Markov Chains"
 subtitle: "University of Toronto, ACT 350"
 author: "Prof. S. Pesenti"
-date: "19/10/2019"
+date: "27/10/2020"
 header-includes:
 - \usepackage{lastpage}
 - \usepackage{fancyhdr}
@@ -13,8 +13,8 @@ header-includes:
 - \fancyfoot[C]{}
 - \fancyfoot[R]{\thepage \, of \pageref{LastPage}}
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 ```{r packages, include=FALSE}
 # package for calculating matrix exponentials

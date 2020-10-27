@@ -66,7 +66,7 @@ n <- 50
 # initialise the jump times
 jump_times <- rep(0, lenthought = n)
 
-# note that the first value of the jump_times is aleady 0
+# note that the first value of the jump_times is already 0
 for(i in 2:n){
   jump_times[i] <- jump_times[i - 1] + rexp(1, lambda)
 }

@@ -13,10 +13,10 @@ header-includes:
 - \fancyfoot[C]{}
 - \fancyfoot[R]{\thepage \, of \pageref{LastPage}}
 output:
-  pdf_document: default
+  html_document: default
   md_document:
     variant: markdown_github
-  html_document: default
+  pdf_document: default
 ---
 
 # An introductory example

@@ -26,27 +26,29 @@ not influence his punctuality.
 1. Defining the Markov Chain
 ----------------------------
 
--   state space: *S* = {*l*, *p*}, *l* means late, *p* means punctual  
+-   State space: *S* = {*l*, *p*}, *l* means late, *p* means punctual  
 
 -   {*X*<sub>*n*</sub>, *n* = 0, 1, …}, where the event
     {*X*<sub>*n*</sub> = *l*} means that the student is late at day
     *n*.  
 
--   fulfills the Markov property since the event that the student is
+-   Fulfills the Markov property since the event that the student is
     late or punctual only depends whether the student was late or
     punctual the day before. It holds for *n* ≥ 0
 
 -   transition matrix
     $P = \\begin{pmatrix}  p\_{l,l} & p\_{l,p}\\\\  p\_{p,l} & p\_{p,p}  \\end{pmatrix}  = \\begin{pmatrix}  0.3 & 0.7\\\\  0.4 & 0.6  \\end{pmatrix}$.
 
+We call *n* = 0 the induction day and *n* \> 0 represents the *n*-th day
+of lectures.
+
 **Numerical implementation: R code**
 
 ``` r
-# initialise the transition matirx
+# initialise the transition matrix
 P <-  matrix(c(0.3, 0.4, 0.7, 0.6), nrow = 2)
 rownames(P) <- c("l","p")
 colnames(P) <- c("l","p")
-# note / check that all rows sum up to 1
 P
 ```
 
@@ -55,6 +57,7 @@ P
     ## p 0.4 0.6
 
 ``` r
+# check that all rows sum up to 1
 rowSums(P)
 ```
 
@@ -64,19 +67,35 @@ rowSums(P)
 2. Transition probabilities and stationary distribution
 -------------------------------------------------------
 
-**Question:** What are the transition probabilities that the student is
-late or punctual after two days?
+Next we calculate the conditional probabilities for a student being late
+at a later day in the semester given that we know whether the student
+was late on induction day.
 
-**Question:** How about after the 10<sup>*t**h*</sup> day?
+**Question:** What are the conditional transition probabilities that a
+student is late or punctual on the second day? That is
+e.g. *p*<sub>*l*, *l*</sub><sup>2</sup> = *P*(*X*<sub>1</sub> = *l*\|*X*<sub>0</sub> = *l*),
+*p*<sub>*l*, *p*</sub><sup>2</sup>, *p*<sub>*p*, *l*</sub><sup>2</sup>
+and *p*<sub>*p*, *p*</sub><sup>2</sup>.
 
-**Question:** How about after the 50<sup>*t**h*</sup> day?
+**Question:** How about the probabilities for the 10<sup>*t**h*</sup>
+day?
+
+**Question:** How about the probabilities for the 50<sup>*t**h*</sup>
+day?
 
 For this, we have to calculate the transition probabilities for day 2
 (*P* \* *P*), and for day 10 (*P*<sup>10</sup>) and for day 50
-(*P*<sup>50</sup>).
+(*P*<sup>50</sup>). For this we can use the Chapman-Kolmogorov equation
+to calculate these transition probabilities. If we denote by
+*P*<sup>1</sup> = (*p*<sub>*i*, *j*</sub>)<sub>*i*, *j*,  ∈ *S*</sub>
+the transition probability matrix for the first day. Then,
+*P*<sup>2</sup> = *P*<sup>1</sup> \* *P*<sup>1</sup> by
+Chapman-Kolmogorov and
+*P*<sup>*n*</sup> = (*P*<sup>1</sup>)<sup>*n*</sup>, that is the matrix
+*P*<sup>1</sup> multiplied *n* times with itself.
 
 ``` r
-# transition probability after 2 days
+# transition probabilities on 2 days
 P %*% P
 ```
 
@@ -85,17 +104,17 @@ P %*% P
     ## p 0.36 0.64
 
 ``` r
-# note / check that all rows sum up to 1
+# check that all rows sum up to 1
 rowSums(P)
 ```
 
     ## l p 
     ## 1 1
 
-**Question:** What is the interpretation of 0.37?
+**Question:** What is the interpretation of `(P %*% P)[1,1] =` 0.37?
 
 ``` r
-# transition probability after 10 days
+# transition probabilities on 10 days
 P %^% 10
 ```
 
@@ -104,7 +123,7 @@ P %^% 10
     ## p 0.3636364 0.6363636
 
 ``` r
-# transition probability after 50 days
+# transition probabilities on 50 days
 P %^% 50
 ```
 
@@ -115,8 +134,8 @@ P %^% 50
 **Question:** What do you observe?
 
 We see numerically that the rows of the transition matrices always add
-up to 1. Further, we observe that the transition matrix after 10 days
-and after 50 days are numerically equal. Let *t* = 0 correspond to the
+up to 1. Further, we observe that the transition matrix for 10 days and
+for 50 days are numerically equal. Let *t* = 0 correspond to the
 induction day and *t* = 1 to the first day of lectures. Then we have
 that, if the student was late at the induction day, he will be late at
 the end of the semester with probability 0.3636364, independent of
@@ -126,8 +145,9 @@ is the probability that the student is late on the 50th day, given he
 was late at the induction day. Numerically, we observe that
 *p*<sub>*l**l*</sub><sup>10</sup> = *p*<sub>*l**l*</sub><sup>11</sup> = ⋯ = *p*<sub>*l**l*</sub><sup>50</sup> = ⋯*p*<sub>*l**l*</sub><sup>*n*</sup> = ⋯
 for all *n* large. Thus, the probability of being late on a day later in
-the semester, is independent whether the student was late at induction
-day or not.
+the semester given that the student was late on the first day, is
+independent whether the student was late at during the semester and only
+depends on whether the student was late on induction day or not.
 
 **Question:** Does this mean that (0.3636364, 0.6363636) is a stationary
 distribution for the Markov Chain?
@@ -208,17 +228,18 @@ student1_x0 %*% (P %^% 100)
 
 Observe that *student 1* has probability 0.5 to be punctual at induction
 day. On the first day of lectures however, *student 1* has probability
-0.65 to be punctual.
+0.65 to be punctual. *Student 1* is punctual on the 100-th day with
+probability 0.6363636.
 
 **student 2**  
 Now let us look at the “good” *student 2* who started with probability
 of 0.8 to be punctual at induction day.
 
 ``` r
-# probability of student 2 at induction day  
+# probabilities of student 2 at induction day  
 student2_x0 <- c(0.2, 0.8)
 
-# probability at the first day
+# probabilities at the first day
 student2_x0 %*% P
 ```
 
@@ -226,7 +247,7 @@ student2_x0 %*% P
     ## [1,] 0.38 0.62
 
 ``` r
-# probability at the 5th day
+# probabilities at the 5th day
 student2_x0 %*% (P %^% 5)
 ```
 
@@ -234,22 +255,27 @@ student2_x0 %*% (P %^% 5)
     ## [1,] 0.363638 0.636362
 
 ``` r
-# probability at the 100th day
+# probabilities at the 100th day
 student2_x0 %*% (P %^% 100)
 ```
 
     ##              l         p
     ## [1,] 0.3636364 0.6363636
 
+We observe, that even though the “good” *student 2* started with a
+higher probability of being punctual on induction day, the probability
+that the student is late on the 100-th day is equal to 0.6363636, which
+is equal the corresponding probability of *student 1*.
+
 **student 3**  
 How about *student 3* who only has a probability of 0.3 to turn up
-punctual at induction day? Will he improve over the semester?
+punctual at induction day? Will the student improve over the semester?
 
 ``` r
-# probability of student 3 at induction day 
+# probabilities of student 3 at induction day 
 student3_x0 <- c(0.7, 0.3)
 
-# probability at the first day
+# probabilities at the first day
 student3_x0 %*% P
 ```
 
@@ -257,7 +283,7 @@ student3_x0 %*% P
     ## [1,] 0.33 0.67
 
 ``` r
-# probability at the 5th day
+# probabilities at the 5th day
 student3_x0 %*% (P %^% 5)
 ```
 
@@ -265,7 +291,7 @@ student3_x0 %*% (P %^% 5)
     ## [1,] 0.363633 0.636367
 
 ``` r
-# probability at the 100th day
+# probabilities at the 100th day
 student3_x0 %*% (P %^% 100)
 ```
 
@@ -301,11 +327,11 @@ single day whether he was late or punctual, he will provide us with an
     *x*<sub>0</sub> = (1, 0) means the student is late at induction
     day.  
 2.  for *n* ≥ 1 do:
-    1.  calculate *x*<sub>0</sub> \* *P*<sup>*n*</sup> (the distribution
-        of the student to be late/punctual on the *n*<sup>*t**h*</sup>
-        day)  
+    1.  calculate *x*<sub>*n* − 1</sub> \* *P* (the distribution of the
+        student to be late/punctual on the *n*<sup>*t**h*</sup> day
+        given the outcome of the previous day)  
     2.  generate a realisation from a random variable with distribution
-        *x*<sub>0</sub> \* *P*<sup>*n*</sup>  
+        *x*<sub>*n* − 1</sub> \* *P*  
     3.  set the outcome of the random variable equal to
         *x*<sub>*n*</sub>
 
@@ -317,38 +343,41 @@ For simplicity, denote *l* = 1 and *p* = 0. Choose
 *x*<sub>0</sub> = (1, 0), that is the student is late on the first day.
 
 ``` r
-# set the seed for generating random variables (for reproducability) 
-# set.seed(2019)
+# set the seed for generating random variables (for reproducibility) 
+# set.seed(2020)
 # number of days (length of simulated sample path)
 n <- 50
-# initialise the sample path
-sample_path <- rep(0, lenthought = n)
-# initialise the probability that the student is late
-late <- rep(0, lenthought = n)
-
+# initialise the sample path - 1 in sample_path mean late, 0 means punctual.
+sample_path <- rep(0, n)
+prob_late <- rep(0, n)
 # initial value at induction day
-x0 = c(1, 0)
-# probability that the student is late on the first day
-late[1] <- (x0 %*% P)[1]
+x <- c(1, 0)
+# probability that the student is late on the next day
+prob <- x * P
+# generate a realisation with distribution P
+sample_path[1] <- rbinom(1, 1, P[1,1])
+# determine the vector of whether the student is late or not.
+x <- c(sample_path[1], if(sample_path[1] == 0){1} else{0}) 
 
 for(i in 2:n){
-  # probability that the student is late at day n
-  late[i] <- (x0 %*% (P %^% i))[1]
-  # genearte a Bernoulli random variable with probability = late
-  sample_path[i] <- rbinom(1, 1, late[i])
+  prob <- (x %*% P)
+  # generate a Bernoulli random variable with probability = late
+  sample_path[i] <- rbinom(1, 1, prob)
+  x <- c(sample_path[1], if(sample_path[i] == 0){1} else{0}) 
 }
+
+plot(seq(1, n), sample_path,
+     xlab = "number of days", ylab = " ", type= "p", 
+     main = "Sample path: 1 = late, 0 = punctual")
 ```
 
-The first plot shows the probability that the student is late over the
-next 50 days. The second plot shows the generated sample path, that
-displays whether the student is late (1) or punctual (0) for the next 50
-day.
+![](simulating-MC_files/figure-markdown_github/simulated%20sample%20path-1.png)
 
-<img src="simulating-MC_files/figure-markdown_github/plot_sample_path-1.png" width="50%" /><img src="simulating-MC_files/figure-markdown_github/plot_sample_path-2.png" width="50%" />
+The plot shows the generated sample path, that displays whether the
+student is late (1) or punctual (0) for the next 50 day.
 
 **Question** If you rerun the above code to simulate a sample path, you
-should always get something different. Have a close look at the figure
-to the right. The figure on the left will always look very similar. Why?
+should always get something different. Why?
 
 **Question** Rerun the above code to simulate a sample path changing
 *n*, the length of the sample path, and/or the initial value.

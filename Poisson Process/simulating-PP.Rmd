@@ -2,7 +2,7 @@
 title: "Simulating Poisson processes"
 subtitle: "University of Toronto, ACT 350"
 author: "Prof. S. Pesenti"
-date: "08/09/2020"
+date: "28/09/2021"
 header-includes:
 - \usepackage{lastpage}
 - \usepackage{fancyhdr}
@@ -13,9 +13,9 @@ header-includes:
 - \fancyfoot[C]{}
 - \fancyfoot[R]{\thepage \, of \pageref{LastPage}}
 output:
-  pdf_document: default
-  html_document: default
   md_document: default
+  html_document: default
+  pdf_document: default
 ---
 ```{r packages, include=FALSE}
 # package for calculating matrix exponentials
@@ -115,7 +115,7 @@ Note you can evaluate the Poisson process for any time point $t$, however, keep 
 ## 3. Plotting a sample path
 
 To plot a sample path we have to plot the implemented step function `poisson_process`. 
-```{r, simulated sample path}
+```{r, simulated sample path, fig.align='center'}
 plot(poisson_process, xlab = "time", ylab = "Value of Poisson process", main = NULL,
      verticals = FALSE, do.points = FALSE, xlim = c(0,jump_times[n]))
 
@@ -123,6 +123,20 @@ plot(poisson_process, xlab = "time", ylab = "Value of Poisson process", main = N
 
 **Question:** Rerun the code, what do you observe?     
 **Question:** Rerun the code with a different $\lambda$ or change the number of jumps. How does the sample path change?      
+
+
+
+## Tasks: 
+
+
+**a)** Plot multiple sample paths in one plot and provide an interpretation.
+
+**b)** Plot a histogram of the Poisson process at a time $t$. Verify that it is indeed a Poisson random variable with parameter $\lambda$. E.g., calculate the sample mean, sample variance, compare the histograms.
+
+**b)** Plot a histogram of an increment of a Poisson process and verify that it is Poisson distributed. 
+
+**c)** How can you show that disjoint increments are indeed independent? 
+
 
 
 # Renewal Theory
@@ -136,8 +150,8 @@ Then the process $\{N(t)\, |\, t \ge 0\}$ is called a renewal process.
 If the $T_i\, ,i = 1, 2, \ldots$ are i.i.d. Exponential with parameter $\lambda>0$, then the renewal process $\{N(t)\,|\, t \ge 0\}$ is a Poisson process. 
 
 
-# **Task:**    
 
+## Tasks: 
 **a)** Generate a code to simulate from a renewal process, where the interarrival times $T_i\, ,i = 1, 2, \ldots$ are 
 i.i.d. LogNormal distributed with mean $2$ and standard deviation 0.5. *Hint: use the function `rlnorm`*.
 

@@ -1,21 +1,4 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-How to simulate a Poisson process
-=================================
+# How to simulate a Poisson process
 
 Recall that a Poisson process with rate *λ* &gt; 0 is a counting process
 {*N*(*t*), *t* ≥ 0} that has the following properties
@@ -43,8 +26,7 @@ Poisson process can only jump one unit at a time. Thus, we can define
 the Poisson process as a step function that jumps exactly one unit at
 every jump point.
 
-1. Generating jump times
-------------------------
+## 1. Generating jump times
 
 This is an algorithm for generating the jump times of a Poisson process
 
@@ -68,41 +50,40 @@ Poisson process jumps.
     # initialise the jump times
     jump_times <- rep(0, lenthought = n)
 
-    # note that the first value of the jump_times is aleady 0
+    # note that the first value of the jump_times is already 0
     for(i in 2:n){
       jump_times[i] <- jump_times[i - 1] + rexp(1, lambda)
     }
     jump_times
 
-    ##  [1]  0.0000000  0.5364204  0.6797592  1.1976821  1.4547997  1.6618271
-    ##  [7]  2.0279133  2.1273068  3.4025758  3.8068813  4.0546129  4.5056082
-    ## [13]  5.0440875  5.6096541  5.7136987  6.4815797  6.9479823  7.2108230
-    ## [19]  9.7099614  9.7107387  9.9232506 10.1332872 10.3478895 10.6781867
-    ## [25] 11.1893327 11.3628134 11.7966425 12.4920872 12.7023133 12.8938252
-    ## [31] 13.4776079 13.4793536 13.6448219 14.0062459 14.6350073 14.9966568
-    ## [37] 16.0899974 16.6408139 17.2828964 17.5200645 17.7641976 18.7120167
-    ## [43] 19.2365888 20.2029024 20.6987375 20.7324573 21.2953410 21.8781391
-    ## [49] 22.2128972 23.0060851
+    ##  [1]  0.00000000  0.02448321  0.24809148  0.35258581  1.39493350  1.57780882
+    ##  [7]  1.69025705  1.72996782  2.29834041  2.36717230  2.71170119  2.85881459
+    ## [13]  3.07426387  3.88015562  5.62763056  6.66078917  6.75034561  6.96574035
+    ## [19]  7.18283283  8.08959753  8.94817806  8.99011209  9.10927751  9.19064317
+    ## [25]  9.67051369 11.55664340 11.57695735 12.21075934 13.44668427 13.94012428
+    ## [31] 14.53353901 15.53672306 15.66627549 15.92759279 16.74850066 17.01516505
+    ## [37] 17.35273957 17.95037395 18.64770376 19.41962784 19.58733482 20.14885744
+    ## [43] 20.28945536 21.07511818 21.29603414 21.31948105 21.36684063 22.05026880
+    ## [49] 22.25317902 23.24447851
 
 A more efficient implementation, avoiding the for loop, is
 
-    jump_times_2 = cumsum(rexp(n-1, lambda))
+    jump_times_2 = c(0, cumsum(rexp(n-1, lambda)))
     # note that the two generated sample_paths are different, 
     # since the Exponential random variables are different.
     jump_times_2
 
-    ##  [1]  0.6544514  1.7731351  2.5005603  2.7452029  4.1155929  4.1822179
-    ##  [7]  4.8691621  5.0903334  5.3616160  5.9824905  6.2469722  6.4557381
-    ## [13]  7.2963775  7.7890900  8.3599224  8.8945182 10.0275949 10.6340718
-    ## [19] 10.6483474 11.1267670 11.8834403 12.5927588 13.5410685 13.8921572
-    ## [25] 14.2962352 14.4068175 14.9627015 15.8998191 15.9262117 17.0412885
-    ## [31] 17.2213172 17.8005522 18.1404292 18.4289045 18.6027566 20.4972512
-    ## [37] 20.5012016 21.0312639 21.2505673 22.7531266 23.2049816 23.2783735
-    ## [43] 23.4024019 23.6441928 24.3085241 25.7634094 26.3752509 26.7056330
-    ## [49] 26.7160101
+    ##  [1]  0.0000000  0.3761636  0.5205277  1.2355153  1.8795389  2.8855586
+    ##  [7]  3.1941576  4.8642651  5.5442555  5.5924231  5.6143261  6.5785516
+    ## [13]  7.0027804  7.0173085  8.4408377  8.7897951  9.3788216 10.0003501
+    ## [19] 11.1333459 12.6937935 12.7761392 13.2042240 13.3196488 13.5066792
+    ## [25] 14.0419907 14.1945179 14.2587654 14.9511660 15.1625553 15.1936642
+    ## [31] 16.7366934 16.7603917 16.9517960 17.0956475 18.2244326 18.2816330
+    ## [37] 18.7197244 19.8831578 20.5477862 20.9298677 21.3082175 21.4944692
+    ## [43] 21.5955008 22.5190349 22.8327660 23.3417422 24.6036850 25.0562683
+    ## [49] 25.2067298 25.2116927
 
-2. Defining the Poisson process as a function
----------------------------------------------
+## 2. Defining the Poisson process as a function
 
 Next, we can define the Poisson process as a step function that jumps
 exactly one unit at every value in `jump_times`. Note that the
@@ -122,17 +103,17 @@ implemented Poisson process is now a *function* of the time *t*.
     # What is the value of N(3)? (Note that we use jump_times and not jump_times_2)
     poisson_process(3)
 
-    ## [1] 7
+    ## [1] 11
 
     poisson_process(10)
 
-    ## [1] 20
+    ## [1] 24
 
     poisson_process(15)
 
-    ## [1] 35
+    ## [1] 30
 
-The first jump time is 0.5364204. Let us check whether the Poisson
+The first jump time is 0.0244832. Let us check whether the Poisson
 process jumps at that time.
 
     # The first jump of the Poisson process is 
@@ -149,8 +130,7 @@ Note you can evaluate the Poisson process for any time point *t*,
 however, keep in mind that we only simulated 50 jumps of the Poisson
 process. Thus, evaluating `N(t)` for *t* large does not make sense.
 
-3. Plotting a sample path
--------------------------
+## 3. Plotting a sample path
 
 To plot a sample path we have to plot the implemented step function
 `poisson_process`.
@@ -158,20 +138,33 @@ To plot a sample path we have to plot the implemented step function
     plot(poisson_process, xlab = "time", ylab = "Value of Poisson process", main = NULL,
          verticals = FALSE, do.points = FALSE, xlim = c(0,jump_times[n]))
 
-![](simulating-PP_files/figure-markdown_strict/simulated%20sample%20path-1.png)
+<img src="simulating-PP_files/figure-markdown_strict/simulated sample path-1.png" style="display: block; margin: auto;" />
 
 **Question:** Rerun the code, what do you observe?  
 **Question:** Rerun the code with a different *λ* or change the number
 of jumps. How does the sample path change?
 
-Renewal Theory
-==============
+## Tasks:
+
+**a)** Plot multiple sample paths in one plot and provide an
+interpretation.
+
+**b)** Plot a histogram of the Poisson process at a time *t*. Verify
+that it is indeed a Poisson random variable with parameter *λ*. E.g.,
+calculate the sample mean, sample variance, compare the histograms.
+
+**b)** Plot a histogram of an increment of a Poisson process and verify
+that it is Poisson distributed.
+
+**c)** How can you show that disjoint increments are indeed independent?
+
+# Renewal Theory
 
 A renewal process is defined as follows: Consider a sequence
 *T*<sub>1</sub>, *T*<sub>2</sub>, … of independent identically
 distributed (i.i.d.) non-negative random variables. Define the
 stochastic process
-*X*<sub>0</sub> = 0 , *X*<sub>*n*</sub> = *T*<sub>1</sub> + … + *T*<sub>*n*</sub> , *n* = 1, 2, … ,
+*X*<sub>0</sub> = 0 ,  *X*<sub>*n*</sub> = *T*<sub>1</sub> + … + *T*<sub>*n*</sub> ,  *n* = 1, 2, … ,
 and set
 $$N(t) = \\max\\Big\\{ n \\in \\mathbb{N} ~\\Big|~ \\sum\_{i = 1}^n X\_i \\leq t \\Big\\}, \\quad \\text{for all } t \\geq 0. $$
 Then the process {*N*(*t*) | *t* ≥ 0} is called a renewal process.
@@ -180,8 +173,7 @@ If the *T*<sub>*i*</sub> , *i* = 1, 2, … are i.i.d. Exponential wi
 parameter *λ* &gt; 0, then the renewal process {*N*(*t*) | *t* ≥ 0} is a
 Poisson process.
 
-**Task:**
-=========
+## Tasks:
 
 **a)** Generate a code to simulate from a renewal process, where the
 interarrival times *T*<sub>*i*</sub> , *i* = 1, 2, … are i.i.d.

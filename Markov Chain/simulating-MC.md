@@ -1,21 +1,4 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-An introductory example
-=======================
+# An introductory example
 
 Assume a student has lectures every day at the University of Toronto and
 is either punctual or late. The student is late with probability 0.3,
@@ -23,8 +6,7 @@ when he was late the day before, and late with probability 0.4, when he
 was punctual the day before. Being late or punctual two days before does
 not influence his punctuality.
 
-1. Defining the Markov Chain
-----------------------------
+## 1. Defining the Markov Chain
 
 -   State space: *S* = {*l*, *p*}, *l* means late, *p* means punctual  
 
@@ -64,8 +46,7 @@ rowSums(P)
     ## l p 
     ## 1 1
 
-2. Transition probabilities and stationary distribution
--------------------------------------------------------
+## 2. Transition probabilities and stationary distribution
 
 Next we calculate the conditional probabilities for a student being late
 at a later day in the semester given that we know whether the student
@@ -73,7 +54,7 @@ was late on induction day.
 
 **Question:** What are the conditional transition probabilities that a
 student is late or punctual on the second day? That is
-e.g. *p*<sub>*l*, *l*</sub><sup>2</sup> = *P*(*X*<sub>1</sub> = *l*\|*X*<sub>0</sub> = *l*),
+e.g. *p*<sub>*l*, *l*</sub><sup>2</sup> = *P*(*X*<sub>1</sub>=*l*\|*X*<sub>0</sub>=*l*),
 *p*<sub>*l*, *p*</sub><sup>2</sup>, *p*<sub>*p*, *l*</sub><sup>2</sup>
 and *p*<sub>*p*, *p*</sub><sup>2</sup>.
 
@@ -140,7 +121,7 @@ induction day and *t* = 1 to the first day of lectures. Then we have
 that, if the student was late at the induction day, he will be late at
 the end of the semester with probability 0.3636364, independent of
 whether he was late or not during the term. Recall that
-*p*<sub>*l**l*</sub><sup>50</sup> = *P*(*X*<sub>50</sub> = *l*\|*X*<sub>0</sub> = *l*)
+*p*<sub>*l**l*</sub><sup>50</sup> = *P*(*X*<sub>50</sub>=*l*\|*X*<sub>0</sub>=*l*)
 is the probability that the student is late on the 50th day, given he
 was late at the induction day. Numerically, we observe that
 *p*<sub>*l**l*</sub><sup>10</sup> = *p*<sub>*l**l*</sub><sup>11</sup> = ⋯ = *p*<sub>*l**l*</sub><sup>50</sup> = ⋯*p*<sub>*l**l*</sub><sup>*n*</sup> = ⋯
@@ -184,18 +165,16 @@ all.equal(t(pi) %*% P, t(pi))
 
     ## [1] TRUE
 
-3. Initial distribution
------------------------
+## 3. Initial distribution
 
 Let us look at students whose transition probabilities are described by
 *P* but have different probabilities to be punctual at induction day
 (*t* = 0).
 
--   *student 1*: probabilities at induction day (0.5, 0.5) (random
+-   *student 1*: probabilities at induction day (0.5,0.5) (random
     student)
--   *student 2*: probabilities at induction day (0.2, 0.8) (good
-    student)
--   *student 3*: probabilities at induction day (0.7, 0.3) (bad student)
+-   *student 2*: probabilities at induction day (0.2,0.8) (good student)
+-   *student 3*: probabilities at induction day (0.7,0.3) (bad student)
 
 **student 1**
 
@@ -307,11 +286,10 @@ probabilities are described by *P*? That is, does the initial
 distribution of the student not influence the limiting distribution?
 
 Numerically, and also analytically (**Why?**), it holds that for any
-initial distribution *ν*, 1 − *ν*, *ν* ∈ \[0, 1\] on the state space
+initial distribution *ν*, 1 − *ν*, *ν* ∈ \[0,1\] on the state space
 *S* = {*l*, *p*}.
 
-4. Sample path
---------------
+## 4. Sample path
 
 So far we only looked how the probabilities of being punctual or late
 changes from day to day or over the semester. In this section we look at
@@ -324,7 +302,7 @@ single day whether he was late or punctual, he will provide us with an
 1.  Set an initial value for *x*<sub>0</sub>. (Is the student punctual
     or late at induction day?) To be able to use the matrix notation,
     the initial value needs to be a vector. For example
-    *x*<sub>0</sub> = (1, 0) means the student is late at induction
+    *x*<sub>0</sub> = (1,0) means the student is late at induction
     day.  
 2.  for *n* ≥ 1 do:
     1.  calculate *x*<sub>*n* − 1</sub> \* *P* (the distribution of the
@@ -340,7 +318,7 @@ the student.
 
 **A simulated sample path: R code**  
 For simplicity, denote *l* = 1 and *p* = 0. Choose
-*x*<sub>0</sub> = (1, 0), that is the student is late on the first day.
+*x*<sub>0</sub> = (1,0), that is the student is late on the first day.
 
 ``` r
 # set the seed for generating random variables (for reproducibility) 
@@ -363,7 +341,7 @@ for(i in 2:n){
   prob <- (x %*% P)
   # generate a Bernoulli random variable with probability = late
   sample_path[i] <- rbinom(1, 1, prob)
-  x <- c(sample_path[1], if(sample_path[i] == 0){1} else{0}) 
+  x <- c(sample_path[i], if(sample_path[i] == 0){1} else{0}) 
 }
 
 plot(seq(1, n), sample_path,

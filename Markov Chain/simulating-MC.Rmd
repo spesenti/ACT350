@@ -13,10 +13,10 @@ header-includes:
 - \fancyfoot[C]{}
 - \fancyfoot[R]{\thepage \, of \pageref{LastPage}}
 output:
+  pdf_document: default
   md_document:
     variant: markdown_github
   html_document: default
-  pdf_document: default
 ---
 
 # An introductory example
@@ -244,7 +244,7 @@ for(i in 2:n){
   prob <- (x %*% P)
   # generate a Bernoulli random variable with probability = late
   sample_path[i] <- rbinom(1, 1, prob)
-  x <- c(sample_path[1], if(sample_path[i] == 0){1} else{0}) 
+  x <- c(sample_path[i], if(sample_path[i] == 0){1} else{0}) 
 }
 
 plot(seq(1, n), sample_path,

@@ -1,0 +1,384 @@
+---
+title: "Simulating Poisson processes and compound Poisson processes"
+subtitle: "University of Toronto, ACT 350"
+author: "Prof. S. Pesenti and K. Miao"
+date: "03/10/2023"
+header-includes:
+- \usepackage{lastpage}
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \setlength{\headheight}{23pt}
+- \fancyhead[L]{ACT 350}
+- \fancyhead[R]{University of Toronto\\ Pesenti, Miao}
+- \fancyfoot[C]{}
+- \fancyfoot[R]{\thepage \, of \pageref{LastPage}}
+output:
+  pdf_document: default
+  html_document: default
+  md_document: default
+
+---
+```{r packages, include=FALSE}
+library("ggplot2")
+library("tidyverse")
+```
+
+Learning goals: 1. simulation and intuition of Poisson processes, 2. simulation and intuition of compound Poisson processes, 3. introduction to rMarkdown, 4. introduction to tidyverse/dplyr, 5. introduction to ggplot.
+
+
+# How to simulate a Poisson process
+
+
+
+Recall that a Poisson process with rate $\lambda >0$ is a counting process $\{ N(t) : t \geq 0\}$ that has the following properties
+
+1. *starts at 0*: $N(0) = 0$ with probability 1
+2. *has independent increments*
+3. *is increasing*: $N(s)  \leq N(t)$ for all $s \leq t$
+4. *has Poisson distributed increments*: $P(N(s + t) - N(s) = n) \sim$ Pois($\lambda t$) for all $s,t \geq 0$.     
+
+However, this definition does not help if we want to simulate a Poisson process. Thus, to simulate a Poisson process we use its alternative definition. That is, for independent random variables $X_1, X_2, \ldots$ that are Exponentially distributed with rate $\lambda>0$, a Poisson process with rate $\lambda>0$ can be written as
+
+\begin{equation*}
+N(t) = \max\Big\{ n \in \mathbb{N} ~\Big|~ \sum_{i = 1}^n X_i \leq t \Big\}, \quad \text{for all } t \geq 0.
+\end{equation*}
+
+Thus, for simulating a Poisson process we first need to simulate exponential random variables, add them up and check whether they are smaller or equal to $t$. However, we will run into problems when we want to store the value of $N(t)$ for every $0 \leq t < \infty$. The way out is to implement $N(t)$ as a function of $t$ in the following way. First generate the jump points of the Poisson process. Second, we know that a Poisson process can only jump one unit at a time. Thus, we can define the Poisson process as a step function that jumps exactly one unit at every jump point. 
+
+
+## 1. Generating jump times
+This is an algorithm for generating the jump times of a Poisson process    
+
+
+1. Set $\tau_0 = 0$.     
+2. For $k \geq 1$ do     
+    a) generate $X \sim$Exp($\lambda$)      
+    b) set $\tau_k = \tau_{k - 1} + X$    
+
+The $\tau_k, ~ k = 0, 1, \ldots$ are the time points, where the Poisson process jumps. 
+
+
+**Numerical implementation: R code**
+
+We demonstrate how to generate sample jump times in two ways:
+
+```{r}
+# set the seed for generating random variables (for reproducibility) 
+set.seed(0310)
+
+# set the rate of the Poisson process/Exponential distribution
+lambda <- 2
+
+# number of jumps 
+n <- 50
+
+# initialize the jump times 
+# let's do in matrix - we will change to tibble/dataframe later
+jumps <- matrix(ncol = 3, nrow = n)
+
+head(jumps)
+
+# we have do step 1., setting $\tau_0 = 0$
+jumps[1,] = c(1,0,1)
+
+# now we can generate the rest of the sample
+for(i in 2:n){
+  jumps[i, 2] <- jumps[i - 1, 2] + rexp(1, lambda)
+  jumps[i,3] = as.factor(1)
+  jumps[i, 1] = i
+}
+
+head(jumps)
+```
+
+and
+
+```{r}
+
+# directly concatenate to our previous simulation
+jumps = rbind(cbind(c(1:n), c(0, cumsum(rexp(n-1, lambda))), rep(2,n)), jumps)
+
+head(jumps)
+```
+
+Which one is more efficient? Why?
+
+We can easily add more sample jumps:
+
+```{r}
+jumps = rbind(cbind(c(1:n), c(0, cumsum(rexp(n-1, lambda))), rep(3,n)), jumps)
+
+jumps = rbind(cbind(c(1:n), c(0, cumsum(rexp(n-1, lambda))), rep(4,n)), jumps)
+
+head(jumps)
+
+jumps = data.frame(jumps)
+
+# name the columns
+colnames(jumps) = c("index", "sim", "path")
+
+# you can also make sample in a wider matrix that would look like this
+# how would you implement that?
+jumps_w = pivot_wider(jumps, names_from = path, values_from = sim)
+
+head(jumps_w)
+
+```
+
+Now, let's plot our sample jumps:
+
+```{r}
+
+# coerce our path label into factor type so we can use ggplot
+jumps$path = as.factor(jumps$path)
+
+# note that the four generated sample_paths are different, 
+# since the Exponential random variables are different samples.
+ggplot(data = jumps, aes(x = index, y = sim)) + 
+  geom_step(aes(color = path, linetype = path)) +
+  xlab("Index") + ylab("Jump Time") +
+  ggtitle("Realizations of Poisson Process Jump times")
+
+```
+
+## 2. Defining the Poisson process as a function
+
+Once the jump times have been simulated, we can go on to generate the Poisson process. 
+
+Next, we can define the Poisson process as a step function that jumps exactly one unit at every value in `jump_times`. Note that the implemented Poisson process is now a *function* of the time $t$.   
+```{r}
+
+# need to massage the data some more, R complains about numeric names
+names(jumps_w) = make.names(names(jumps_w))
+# the default X# names are fine for our purposes
+
+head(jumps_w)
+
+# define a Poisson process as a function taking inputs of jump times
+# it outputs the value of a sample PP
+poisson_process = function(jumpVector){
+  stepfun(jumpVector[2 : n], seq(0, n - 1, by = 1))(0:n)
+}
+
+# the first argument of `stepfun` is where the step function jumps
+# the second argument is the height of the step function
+
+# Let us check some values.
+# The starting value is 0.
+poisson_process(jumpVector = jumps_w$X3)[1]
+# What is the value of N(3)?
+poisson_process(jumpVector = jumps_w$X3)[3]
+poisson_process(jumpVector = jumps_w$X3)[10]
+poisson_process(jumpVector = jumps_w$X3)[15]
+```
+
+Note you can evaluate the Poisson process for any time point $t$, however, keep in mind that we only simulated 50 jumps of the Poisson process. Thus, evaluating $N(t)$ for large $t$ does not make sense. 
+
+## 3. Plotting a sample path
+
+We have to apply our 'poisson_process' function to each of our sample paths. So let's create a new dataframe that will contain this information.
+
+```{r}
+# apply the poisson process function to each of our sample jump times
+PP = jumps_w %>% 
+  reframe(across(2:5, poisson_process)) %>% 
+  cbind(time = 0:n) 
+
+head(PP)
+
+# make a long version of the table with renaming (so we can use ggplot2)
+PP_l = PP %>% 
+  pivot_longer(cols = 1:4) %>% 
+  rename(pPath = name, pVal = value)
+
+head(PP_l)
+
+```
+
+To plot a sample path we have to plot the implemented step function `poisson_process`. 
+```{r, warning = FALSE}
+
+ggplot(data = PP_l) + 
+  geom_step(aes(x = time, y = pVal, colour = pPath, linetype = pPath)) + 
+  xlim(c(0,25)) +
+  xlab("Time") + 
+  ylab("Value of Poisson Process") + 
+  ggtitle("Simulated Sample Paths of a Poisson Process") +
+  scale_colour_discrete(name  ="Sample",
+                          breaks=c("X1", "X2", "X3", "X4"),
+                          labels=c("1", "2", "3", "4")) +
+  scale_linetype_discrete(name  ="Sample",
+                          breaks=c("X1", "X2", "X3", "X4"),
+                          labels=c("1", "2", "3", "4"))
+
+# what happens if I don't manually rename the legend?
+```
+
+## Confirming that samples are Poisson distributed
+
+To (heuristically) check that our simulated process indeed follows a Poisson distribution, can do a few "eyeball tests".
+
+We have to generate samples from a Poisson process at a fixed time $t$.
+
+```{r}
+# set a fixed time
+t = 8
+
+# set a reasonable sample size
+N = 1000
+
+# intialize a vector to collect our samples at time t, 
+# and a vector to temporarily store jump times
+tPois = rep(NA, N)
+tempJumps = rep(NA, n)
+
+# generate the samples
+for (i in 1:N){
+  tempJumps = c(0, cumsum(rexp(n-1, lambda))) 
+  # we overwrite this vector at every loop
+  tPois[i] = poisson_process(jumpVector = tempJumps)[t + 1]
+  # need to add 1 to account for index differences: R is 1 indexed
+}
+```
+
+First, we can check the mean and variance.
+
+```{r}
+mean(tPois)
+var(tPois)
+```
+
+This is consistent with the theory, noting that the variance and expectation of Poisson distributed random variables are equal.  In a numerical setting, we can expect the values to get closer as the number of samples increases (recall: law of large numbers)
+
+Also, recall for a Poisson process $\{N(t) : t \geq 0\}$:
+$$ \mathbb{E}[N(t)] = \lambda t = \text{Var}(N(t))$$ In particular, we have that $\lambda t = 2 \cdot 8 = 16$
+
+Now we have the sample. What the next most obvious thing to look at if we want to confirm the distribution of a sample? Histogram!
+
+```{r, warning = FALSE}
+ggplot() + 
+  geom_histogram(data = tibble(tPois), 
+                 aes(x = tPois, y = after_stat(density)), 
+                 binwidth = 1, fill = "#56B4E9", alpha = 0.7)  + 
+  geom_density() +
+  stat_function(data = tibble(0:t*lambda*2), 
+                geom = "point", n = t*lambda*2 + 1, fun = dpois, 
+                args = list(lambda = t*lambda), aes(colour="#E69F00"), 
+                show.legend = FALSE) +
+  xlim(c(0,t*lambda*2)) +
+  xlab(" ")
+
+```
+The orange dots are the true values of a Poisson density.  Why are they dots? Are you convince that our sample is Poisson distributed?  Why or why not?  How could we improve these results?
+
+## Independent Increments
+
+Let's intuitively confirm that the increments are independent.  Recall that for a Poisson Process $\{ N(t) : t \geq 0\}$, the increments $N(t+s) - N(s)$ is independent of $N(s)$.  To test this numerically, I arbitrarily select $t = 4$ and $s = 3$ i.e. $t + s = 7$.
+
+Let's simulate a sample of $N(s) = N(3)$ and $N(t+s) = N(7)$.
+
+```{r}
+# set s 
+s = 3
+r = 7 # denote r := t + s
+
+#initialize our vectors
+sPois = rep(NA, N)
+rPois = rep(NA, N)
+
+# generate the samples
+for (i in 1:N){
+  tempJumps = c(0, cumsum(rexp(n-1, lambda))) #using the same vec as before
+  sPois[i] = poisson_process(jumpVector = tempJumps)[s + 1]
+  rPois[i] = poisson_process(jumpVector = tempJumps)[r + 1]
+}
+
+```
+
+How do we show independence between two samples? We can always eyeball a scatterplot.
+
+```{r}
+
+ggplot() + geom_bin2d(aes(x = rPois - sPois, y = sPois), bins = 50) +
+  xlab("N(t - s) - N(s)") +
+  ylab("N(s)") + 
+  ggtitle("Scatterplot of Poisson process Increments")
+
+```
+
+Do you think these samples are independent based off of the scatter plot?  Why or why not?
+
+We can also check some independence tests... Consider the null hypothesis that our two samples are statistically independent. We perform a Pearson Chi-squared test (does our experiment satisfy the assumptions of this test?).
+
+```{r}
+chisq.test(x = rPois - sPois, y = sPois, correct = TRUE)
+```
+We fail to reject the null hypothesis. This may or may not be convincing to you. Become confident in this fact by proving that Poisson increments are independent (HW). 
+
+# How to simulate a compound Poisson process
+
+In order to construct a compound Poisson process, we need a (regular) Poisson process and a *jump size distribution*. Like Poisson processes, a compound Poisson process is also a jump process, meaning that it is a piecewise, increasing process. We define the compound Poisson process constructively:
+
+Let $\{N(t) : t \geq 0\}$ be a Poisson process with rate $\lambda > 0$, let $F$ be a jump size distribution, and let random variables $X_i$, $i = 1, 2, \ldots$ follow the distribution $F$ identically and independently.  Then, the compound Poisson distribution $\{W(t) : t \geq 0\}$ is defined as 
+$$
+W(t) := \sum_{i = 1}^{N(t)} X_i
+$$
+for every $t \geq 0$.
+
+We already know how to generate a Poisson process.  Let's make a new sample:
+
+```{r}
+# we can use the same sample sizes and parameters as earlier
+# so we're not going to re-declare the variables
+
+# generate the Poisson jumps
+jumps_cPP = c(0, cumsum(rexp(n-1, lambda)))
+
+# generate the Poisson Process
+PP_cPP = poisson_process(jumpVector = jumps_cPP)
+
+```
+
+Now, we need to sample the jump sizes, sometimes this is called the *severity* of the compound Poisson process - especially in the context of actuarial science (recall the severity of insurance claims).  We will consider the Weibull distribution with shape and  parameters to be 0.75 and 1 respectively to be the severity.  Note that the Weibull distribution with shape between 0 and 1 is a heavy tailed distribution. 
+
+```{r}
+# generate samples from the jump size distribution
+# let's use the Weibull(shape = 3/4, scale = 1)
+shape = 3/4
+scale = 1
+severity = rweibull(500, shape, scale)
+# we don't know how many jump size samples we'll need
+# so I choose 500 to make sure we have enough
+```
+
+Now we have all the components necessary to generate one sample path of our compound Poisson process. 
+
+```{r}
+# find the values of the compound Poisson process
+value_cPP = c(0, cumsum(severity[1 : n - 1]))
+
+```
+
+And we plot this
+```{r}
+ggplot() + geom_step(aes(x = jumps_cPP, y = value_cPP)) +
+  xlab("Time") +
+  ylab("Value") +
+  ggtitle("Compound Poisson Process")
+
+```
+
+
+
+## Tasks: 
+
+1. Plot multiple sample paths of a compound Poisson Process in one plot and provide an interpretation.
+
+2. Show that a compound Poisson process has the properties of a Poisson process, or provide a counterexample (in R and/or on paper), i.e. that it i) has value 0 at time 0, ii) is non-decreasing in time, iii) is Poisson distributed with rate $t \lambda$ at any time $t \geq 0$, and iv) that disjoint increments are independent.
+
+3. An insurance company models a total claim portfolio via a compound Poisson process 
+$$C(t) = \sum_{i = 1}^{N(t)} X_i$$
+where $C(t)$ is the total value of the claims at time $t$ (with weeks as unit), $X_1, X_2, \ldots$ are independently and identically distributed log-normally with a mean claim value of \$1500 and standard deviation of \$2000. The frequency of the claims is modelled by an (independent) Poisson process $\{N(t : t \geq 0)\}$ with an average of 4 claims per week.
+    a) Implement this process in 'R' and plot 4 sample paths (in one plot) for a time period of at least 1 year. Discuss the results.
+    b) What is the expected total claim to the insurance company after 6 months? What about 1 year? Solve on paper and approximate this in 'R".
+    c) Now, say that the intensity of the claims is not constant, i.e. consider $\lambda$ to be a function of time $t$.  In particular, use $\lambda(t) = 3\left(\cos(\frac{t}{2\pi}) + 1\right)$. Why would an insurance company want to consider such a scenario? Repeat parts a) and b), and provide an interpretation.
